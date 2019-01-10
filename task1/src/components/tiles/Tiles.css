@@ -1,0 +1,51 @@
+@keyframes highlight {
+    0% {
+        background: red;
+    }
+    /* 100% {
+    background: none;
+  } */
+}
+
+.tileTable {
+    max-width: 900px;
+    min-width: 500px;
+    margin: 0 auto;
+
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+}
+
+.tile {
+    height: 80px;
+    margin: 10px 1em;
+    padding: 0 10px;
+    flex: 0 1 20%;
+
+    cursor: pointer;
+
+    border: 5px solid #bebebe;
+    background-color: #7a7575;
+
+    position: relative;
+    text-align: center;
+}
+
+.tile.highlight {
+    animation: "highlight" 0.8s;
+}
+
+.tile > div {
+    user-select: none;
+    font-weight: bold;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    margin-top: -9px;
+}
+
+.tile:hover {
+    background-color: antiquewhite;
+}
