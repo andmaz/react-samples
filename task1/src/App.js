@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import logo from "./img.png";
 import "./App.css";
 import TileTable from "./components/tiles/TileTable";
@@ -34,17 +34,23 @@ export default class App extends Component {
     }
 
     renderTabs() {
-        return this.tabs.map((tab, tabNumber) => (
-            <button
-                key={tabNumber}
-                onClick={() => this.handleTabClick(tabNumber)}
-                className={classNames("tab", {
-                    active: this.state.activeTab === tabNumber,
-                })}
-            >
-                {tab.name}
-            </button>
-        ));
+        const { activeTab } = this.state;
+        return (
+            <Fragment>
+                {this.tabs.map((tab, tabNumber) => (
+                    <button
+                        key={tabNumber}
+                        onClick={() => this.handleTabClick(tabNumber)}
+                        className={classNames("tab", {
+                            active: activeTab === tabNumber,
+                        })}
+                    >
+                        {tab.name}
+                    </button>
+                ))}
+                <span className="tabs-hint">Happy now?</span>
+            </Fragment>
+        );
     }
 
     render() {

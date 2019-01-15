@@ -34,13 +34,38 @@
 }
 
 .tab {
-    width: 50px;
-    height: 30px;
+    width: 60px;
+    height: 35px;
     border: none;
     outline: none;
     margin: 10px;
+    cursor: pointer;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.tab:hover {
+    border: 5px solid #3c7439;
 }
 
 .tab.active {
     background-color: forestgreen;
+    border: none;
+    cursor: default;
+}
+
+.tabs-hint {
+    position: fixed;
+    top: 0;
+    right: 0;
+    display: none;
+    font-size: 90px;
+    color: yellow;
+    background-color: red;
+}
+
+.tab:hover:not(.active) ~ .tabs-hint {
+    display: inline;
+    position: fixed;
 }
