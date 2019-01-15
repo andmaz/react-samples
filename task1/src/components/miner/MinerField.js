@@ -1,36 +1,57 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import MinerCell from "./MinerCell";
 import "./Miner.css";
-import { fillField } from "./MinerHelper";
+import CellTypes, { fillField, updateField } from "./MinerHelper";
 
 export default class MinerField extends Component {
     constructor(props) {
         super(props);
-
-        this.width = 10;
-        this.height = 10;
-
-        this.state = { field: fillField(this.width, this.height) };
+        this.state = { field: fillField() };
     }
 
-    handleClick() {}
+    handleCellClick = cell => {
+        console.log("MinerField : handleCellClick");
+
+        this.setState({ field: updateField(this.state.field, cell) });
+
+        if (cell.type === CellTypes.bomb) {
+            alert("Came over");
+        }
+    };
+
+    handleRestartClick = () => {
+        this.setState({ field: fillField() });
+    };
 
     render() {
+        const { field } = this.state;
+
         return (
-            <div className="miner-field">
-                {this.state.field.map((cell, row) => (
-                    <div key={row} className="miner-field-row">
-                        {cell.map((c, col) => (
-                            <MinerCell
-                                key={c.id}
-                                type={c.type}
-                                className="miner-field-cell"
-                                handleClick={() => this.handleClick()}
-                            />
-                        ))}
-                    </div>
-                ))}
-            </div>
+            <Fragment>
+                <div className="miner-field">
+                    {field.map((cells, row) => (
+                        <div key={row} className="miner-field-row">
+                            {cells.map(cell => (
+                                <MinerCell
+                                    key={cell.id}
+                                    type={cell.type}
+                                    value={cell.value}
+                                    data={cell}
+                                    open={cell.open}
+                                    className="miner-field-cell"
+                                    handleClick={this.handleCellClick}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+                <button
+                    className="button button-miner_restart"
+                    onClick={this.handleRestartClick}
+                >
+                    Restart
+                </button>
+            </Fragment>
         );
     }
 }

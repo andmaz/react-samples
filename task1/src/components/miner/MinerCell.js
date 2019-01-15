@@ -5,27 +5,29 @@ import CellTypes from "./MinerHelper";
 export default class Cell extends Component {
     constructor(props) {
         super(props);
-        this.state = { clicked: false };
+        this.state = { clicked: true };
     }
 
-    handleClick() {
-        this.setState({
-            clicked: true,
-        });
+    handleClick = () => {
+        // this.setState({
+        //     clicked: false,
+        // });
 
-        this.props.handleClick();
-    }
+        this.props.handleClick(this.props.data);
+    };
 
     renderTypeSymbol() {
-        if (!this.state.clicked) {
+        const { type, value, open } = this.props;
+
+        if (!open) {
             return;
         }
 
-        switch (this.props.type) {
+        switch (type) {
             case CellTypes.bomb:
                 return "*";
             case CellTypes.hint:
-                return "0";
+                return value;
             case CellTypes.empty:
                 return "";
             default:
@@ -34,11 +36,16 @@ export default class Cell extends Component {
     }
 
     render() {
+        const { open, type } = this.props;
+        const className = classNames("miner-cell", {
+            bomb: type === CellTypes.bomb,
+        });
+
         return (
             <button
-                disabled={this.state.clicked}
-                className={classNames("miner-cell")}
-                onClick={() => this.handleClick()}
+                disabled={open}
+                className={className}
+                onClick={this.handleClick}
             >
                 {this.renderTypeSymbol()}
             </button>
