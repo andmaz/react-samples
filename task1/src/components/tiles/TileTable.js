@@ -12,9 +12,10 @@ export default class TileTable extends Component {
     }
 
     render() {
+        const { tiles } = this.state;
         return (
             <div className="tileTable">
-                {this.state.tiles.map(id => (
+                {tiles.map(id => (
                     <Tile key={id} />
                 ))}
             </div>

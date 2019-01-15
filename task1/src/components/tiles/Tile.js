@@ -10,7 +10,7 @@ export default class Tile extends Component {
         };
     }
 
-    handleClick() {
+    handleClick = () => {
         this.setState({
             clickCounter: this.state.clickCounter + 1,
             highlight: false,
@@ -20,17 +20,16 @@ export default class Tile extends Component {
     }
 
     render() {
+        const {clickCounter, highlight} = this.state;
         return (
             <div
-                className={classNames("tile", {
-                    highlight: this.state.highlight,
-                })}
-                onClick={() => this.handleClick()}
+                className={classNames("tile", {highlight})}
+                onClick={this.handleClick}
             >
                 <div>
-                    {this.state.clickCounter === 0
+                    {clickCounter === 0
                         ? "not clicked yet"
-                        : `clicked: ${this.state.clickCounter} times`}
+                        : `clicked: ${clickCounter} times`}
                 </div>
             </div>
         );
