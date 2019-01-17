@@ -12,22 +12,48 @@
     border: 1px solid grey;
     outline: none;
     cursor: pointer;
+    position: relative;
 }
 
-.miner-cell:hover:not([disabled]) {
-    background-color: #c7cbc2;
-}
-
-.miner-cell[disabled] {
+.miner-cell.open {
     background-color: #f5ffeb;
     border-color: white;
     cursor: default;
 }
 
-.miner-cell.bomb {
+.miner-cell:hover:not(.open) {
+    background-color: #c7cbc2;
+}
+
+.miner-cell.open.bomb:not(.mark) {
+    background-color: black;
+}
+
+.miner-cell.open.bomb:not(.mark):after {
+    content: "*";
+    font-size: 50px;
+    position: absolute;
+    top: -2px;
+    left: 5px;
     color: red;
+}
+
+.miner-cell.unknownMark:not(.open):after {
+    position: absolute;
+    top: 1px;
+    left: 8px;
+    color: blue;
+    content: "?";
+    font-size: 25px;
+}
+
+.miner-cell.bombMark:not(.open):after {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    color: blue;
     font-size: 30px;
-    line-height: 23px;
+    content: "*";
 }
 
 .button {
@@ -58,4 +84,29 @@
 .button-miner_restart:hover {
     background-color: #008cba;
     color: white;
+}
+
+.game-over-block {
+    z-index: 1;
+    position: relative;
+    margin: 0 auto;
+    width: 300px;
+    display: none;
+}
+
+.game-over-block.show {
+    display: block;
+}
+
+.game-over-message {
+    color: red;
+    background-color: grey;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 135px;
+    height: 50px;
+    font-size: 25px;
+    line-height: 50px;
 }

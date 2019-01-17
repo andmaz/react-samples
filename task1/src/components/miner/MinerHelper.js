@@ -6,6 +6,24 @@ const CellTypes = {
     hint: 2,
 };
 
+const MarksTypes = {
+    empty: 0,
+    bomb: 1,
+    unknown: 2,
+    getNext(markType) {
+        switch (markType) {
+            case MarksTypes.empty:
+                return MarksTypes.bomb;
+            case MarksTypes.bomb:
+                return MarksTypes.unknown;
+            case MarksTypes.unknown:
+                return MarksTypes.empty;
+            default:
+                return MarksTypes.empty;
+        }
+    },
+};
+
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -30,13 +48,14 @@ function countBombsAround(field, row, column) {
 // * 1 0 1 1 1
 // 1 1 0 0 0 0
 
-function fillField() {
+function generateField() {
     const { FIELD_WIDTH: width, FIELD_HEIGHT: height, BOMBS_COUNT } = constants;
 
-    var field = [...Array(height).keys()].map(row =>
+    const field = [...Array(height).keys()].map(row =>
         [...Array(width).keys()].map(column => ({
             id: row * width + column,
             type: CellTypes.empty,
+            markType: MarksTypes.empty,
             value: null,
             row: row,
             column: column,
@@ -77,17 +96,42 @@ function fillField() {
     return field;
 }
 
-function updateField(field, currentCell) {
+function updateFieldMark(field, currentCell) {
     // deep copy
-    var newField = field.map(row =>
-        row.map(cell =>
-            Object.assign({}, cell, {
-                open:
-                    currentCell.id === cell.id ||
-                    cell.open ||
-                    currentCell.type === CellTypes.bomb,
-            })
-        )
+    let markedCount = 0;
+    const newField = field.map(row =>
+        row.map(cell => {
+            const isCurrent = currentCell.id === cell.id;
+            const markType = isCurrent
+                ? MarksTypes.getNext(cell.markType)
+                : cell.markType;
+            if (markType === MarksTypes.bomb) {
+                markedCount++;
+            }
+
+            return Object.assign({}, cell, { markType });
+        })
+    );
+
+    if (markedCount === constants.BOMBS_COUNT) {
+        // TODO: won
+        console.log("WON!");
+    }
+    return newField;
+}
+
+function updateField(field, currentCell) {
+    const openBomb = currentCell.type === CellTypes.bomb;
+
+    // deep copy
+    const newField = field.map(row =>
+        row.map(cell => {
+            const isCurrent = currentCell.id === cell.id;
+            return Object.assign({}, cell, {
+                open: isCurrent || cell.open || openBomb,
+                markType: isCurrent ? MarksTypes.empty : cell.markType,
+            });
+        })
     );
 
     // only <CellTypes.empty> cells may be expanded
@@ -95,7 +139,7 @@ function updateField(field, currentCell) {
         return newField;
     }
 
-    var processed = Object.create(null);
+    const processed = Object.create(null);
     expandCells(newField, currentCell.row, currentCell.column, processed);
 
     for (var key in processed) {
@@ -126,6 +170,16 @@ function findNeighbors(field, row, column, processed) {
         field[r][c].type !== CellTypes.bomb &&
         processed[`${r}_${c}`] !== true;
 
+    if (field[row][column].type === CellTypes.empty) {
+        [column - 1, column + 1].forEach(c => {
+            [row - 1, row + 1].forEach(r => {
+                if (cellValid(r, c)) {
+                    res.push(field[r][c]);
+                }
+            });
+        });
+    }
+
     [column - 1, column + 1].forEach(c => {
         if (cellValid(row, c)) {
             res.push(field[row][c]);
@@ -141,7 +195,7 @@ function findNeighbors(field, row, column, processed) {
     return res;
 }
 
-export { fillField, updateField };
+export { generateField, updateField, updateFieldMark, CellTypes, MarksTypes };
 export default CellTypes;
 
 // TODO: add more logic

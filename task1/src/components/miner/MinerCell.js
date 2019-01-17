@@ -1,54 +1,38 @@
-import React, { Component } from "react";
+import React from "react";
 import classNames from "classnames";
-import CellTypes from "./MinerHelper";
+import { CellTypes, MarksTypes } from "./MinerHelper";
 
-export default class Cell extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { clicked: true };
-    }
+const cellTypesClasses = {
+    [CellTypes.bomb]: "bomb",
+    [CellTypes.hint]: "hint",
+    [CellTypes.empty]: "empty",
+};
 
-    handleClick = () => {
-        // this.setState({
-        //     clicked: false,
-        // });
+const cellMarksClasses = {
+    [MarksTypes.bomb]: "bombMark",
+    [MarksTypes.unknown]: "unknownMark",
+};
 
-        this.props.handleClick(this.props.data);
-    };
+export default function Cell(props) {
+    const { open, type, value, markType } = props.data;
+    const handleOpen = props.handleOpen.bind(this, props.data);
+    const handleMark = props.handleMark.bind(this, props.data);
 
-    renderTypeSymbol() {
-        const { type, value, open } = this.props;
+    const classes = classNames(
+        "miner-cell",
+        cellTypesClasses[type],
+        cellMarksClasses[markType],
+        { open }
+    );
 
-        if (!open) {
-            return;
-        }
-
-        switch (type) {
-            case CellTypes.bomb:
-                return "*";
-            case CellTypes.hint:
-                return value;
-            case CellTypes.empty:
-                return "";
-            default:
-                return "_";
-        }
-    }
-
-    render() {
-        const { open, type } = this.props;
-        const className = classNames("miner-cell", {
-            bomb: type === CellTypes.bomb,
-        });
-
-        return (
-            <button
-                disabled={open}
-                className={className}
-                onClick={this.handleClick}
-            >
-                {this.renderTypeSymbol()}
-            </button>
-        );
-    }
+    return (
+        <button
+            className={classes}
+            disabled={open}
+            onContextMenu={handleMark}
+            onClick={handleOpen}
+        >
+            {open ? value : null}
+        </button>
+    );
 }

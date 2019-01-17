@@ -1,45 +1,61 @@
 import React, { Component, Fragment } from "react";
 import MinerCell from "./MinerCell";
 import "./Miner.css";
-import CellTypes, { fillField, updateField } from "./MinerHelper";
+import {
+    CellTypes,
+    MarksTypes,
+    generateField,
+    updateField,
+    updateFieldMark,
+} from "./MinerHelper";
+import classNames from "classnames";
 
 export default class MinerField extends Component {
     constructor(props) {
         super(props);
-        this.state = { field: fillField() };
+        this.state = { field: generateField(), gameOver: false };
     }
 
-    handleCellClick = cell => {
-        console.log("MinerField : handleCellClick");
-
+    handleCellOpen = cell => {
         this.setState({ field: updateField(this.state.field, cell) });
 
         if (cell.type === CellTypes.bomb) {
-            alert("Came over");
+            this.setState({ gameOver: true });
         }
     };
 
+    handleCellMark = (cell, event) => {
+        event.preventDefault();
+        console.log("handleCellMark");
+
+        this.setState({ field: updateFieldMark(this.state.field, cell) });
+    };
+
     handleRestartClick = () => {
-        this.setState({ field: fillField() });
+        this.setState({ field: generateField(), gameOver: false });
     };
 
     render() {
-        const { field } = this.state;
+        const { field, gameOver } = this.state;
+        const gameOverClassName = classNames(
+            "game-over-block",
+            gameOver ? "show" : null
+        );
 
         return (
             <Fragment>
+                <div className={gameOverClassName}>
+                    <div className="game-over-message">Game Over</div>
+                </div>
                 <div className="miner-field">
                     {field.map((cells, row) => (
                         <div key={row} className="miner-field-row">
                             {cells.map(cell => (
                                 <MinerCell
                                     key={cell.id}
-                                    type={cell.type}
-                                    value={cell.value}
                                     data={cell}
-                                    open={cell.open}
-                                    className="miner-field-cell"
-                                    handleClick={this.handleCellClick}
+                                    handleOpen={this.handleCellOpen}
+                                    handleMark={this.handleCellMark}
                                 />
                             ))}
                         </div>
