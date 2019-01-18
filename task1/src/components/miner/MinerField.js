@@ -17,7 +17,8 @@ export default class MinerField extends Component {
     }
 
     handleCellOpen = cell => {
-        this.setState({ field: updateField(this.state.field, cell) });
+        const { field } = this.state;
+        this.setState({ field: updateField(field, cell) });
 
         if (cell.type === CellTypes.bomb) {
             this.setState({ gameOver: true });
@@ -26,9 +27,9 @@ export default class MinerField extends Component {
 
     handleCellMark = (cell, event) => {
         event.preventDefault();
-        console.log("handleCellMark");
 
-        this.setState({ field: updateFieldMark(this.state.field, cell) });
+        const { field } = this.state;
+        this.setState({ field: updateFieldMark(field, cell) });
     };
 
     handleRestartClick = () => {
