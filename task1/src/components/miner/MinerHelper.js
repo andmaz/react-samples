@@ -1,4 +1,5 @@
-import * as constants from "./constants";
+import { FIELD_WIDTH, FIELD_HEIGHT, BOMBS_COUNT } from "./constants";
+import { get } from "lodash";
 
 const CellTypes = {
     empty: 0,
@@ -28,32 +29,33 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function countBombsAround(field, row, column) {
-    let sum = 0;
+function getNeighbors(field, targetCell) {
+    const { row, column } = targetCell;
+    const neighbors = [];
     for (var r = row - 1; r <= row + 1; r++) {
         for (var c = column - 1; c <= column + 1; c++) {
-            sum +=
-                field[r] && field[r][c] && field[r][c].type === CellTypes.bomb
-                    ? 1
-                    : 0;
+            const cell = get(field, [r, c]);
+            if (cell && (r !== row || c !== column)) {
+                neighbors.push(cell);
+            }
         }
     }
 
-    return sum;
+    return neighbors;
 }
 
-// 0 0 0 1 1 1
-// 0 0 0 2 * 2
-// 1 1 0 2 * 2
-// * 1 0 1 1 1
-// 1 1 0 0 0 0
+function countBombsAround(field, targetCell) {
+    const neighbors = getNeighbors(field, targetCell);
+    return neighbors.reduce(
+        (sum, cell) => sum + (cell.type === CellTypes.bomb),
+        0
+    );
+}
 
 function generateField() {
-    const { FIELD_WIDTH: width, FIELD_HEIGHT: height, BOMBS_COUNT } = constants;
-
-    const field = [...Array(height).keys()].map(row =>
-        [...Array(width).keys()].map(column => ({
-            id: row * width + column,
+    const field = [...Array(FIELD_HEIGHT).keys()].map(row =>
+        [...Array(FIELD_WIDTH).keys()].map(column => ({
+            id: row * FIELD_WIDTH + column,
             type: CellTypes.empty,
             markType: MarksTypes.empty,
             value: null,
@@ -63,28 +65,23 @@ function generateField() {
     );
 
     // generate bombs
-    let addedBombsCount = 0,
-        column,
-        row;
+    let addedBombsCount = 0;
     while (addedBombsCount !== BOMBS_COUNT) {
-        column = getRandomInt(0, width - 1);
-        row = getRandomInt(0, height - 1);
+        const column = getRandomInt(0, FIELD_WIDTH - 1);
+        const row = getRandomInt(0, FIELD_HEIGHT - 1);
+        const cell = field[row][column];
 
-        if (field[row][column].type === CellTypes.empty) {
-            field[row][column].type = CellTypes.bomb;
+        if (cell.type === CellTypes.empty) {
+            cell.type = CellTypes.bomb;
             addedBombsCount++;
         }
     }
 
     // fill hints
-    field.forEach((row, rowNumber) =>
-        row.forEach((cell, columnNumber) => {
+    field.forEach(row =>
+        row.forEach(cell => {
             if (cell.type !== CellTypes.bomb) {
-                var bombsAround = countBombsAround(
-                    field,
-                    rowNumber,
-                    columnNumber
-                );
+                var bombsAround = countBombsAround(field, cell);
                 if (bombsAround !== 0) {
                     cell.type = CellTypes.hint;
                     cell.value = bombsAround;
@@ -105,15 +102,15 @@ function updateFieldMark(field, currentCell) {
             const markType = isCurrent
                 ? MarksTypes.getNext(cell.markType)
                 : cell.markType;
-            if (markType === MarksTypes.bomb) {
+            if (markType === MarksTypes.bomb && cell.type === CellTypes.bomb) {
                 markedCount++;
             }
 
-            return Object.assign({}, cell, { markType });
+            return { ...cell, markType };
         })
     );
 
-    if (markedCount === constants.BOMBS_COUNT) {
+    if (markedCount === BOMBS_COUNT) {
         // TODO: won
         console.log("WON!");
     }
@@ -127,75 +124,42 @@ function updateField(field, currentCell) {
     const newField = field.map(row =>
         row.map(cell => {
             const isCurrent = currentCell.id === cell.id;
-            return Object.assign({}, cell, {
+
+            return {
+                ...cell,
                 open: isCurrent || cell.open || openBomb,
                 markType: isCurrent ? MarksTypes.empty : cell.markType,
-            });
+            };
         })
     );
 
-    // only <CellTypes.empty> cells may be expanded
-    if (currentCell.type !== CellTypes.empty) {
-        return newField;
-    }
+    const processed = new Set();
+    expandCells(newField, currentCell, processed);
 
-    const processed = Object.create(null);
-    expandCells(newField, currentCell.row, currentCell.column, processed);
-
-    for (var key in processed) {
-        newField[key.split("_")[0]][key.split("_")[1]].open = true;
-    }
+    processed.forEach(cell => {
+        cell.open = true;
+    });
 
     return newField;
 }
 
-function expandCells(field, row, column, processed) {
-    processed[`${row}_${column}`] = true;
+function expandCells(field, cell, processed) {
+    // only empty or hint may be expanded
+    if (cell.type === CellTypes.empty || cell.type === CellTypes.hint) {
+        processed.add(cell);
+    }
 
-    if (field[row][column].type !== CellTypes.empty) {
+    // process neighbors only for empty cell
+    if (cell.type !== CellTypes.empty) {
         return;
     }
 
-    var neighbors = findNeighbors(field, row, column, processed);
-    neighbors.forEach(element => {
-        expandCells(field, element.row, element.column, processed);
-    });
-}
-
-function findNeighbors(field, row, column, processed) {
-    const res = [];
-    const cellValid = (r, c) =>
-        field[r] &&
-        field[r][c] &&
-        field[r][c].type !== CellTypes.bomb &&
-        processed[`${r}_${c}`] !== true;
-
-    if (field[row][column].type === CellTypes.empty) {
-        [column - 1, column + 1].forEach(c => {
-            [row - 1, row + 1].forEach(r => {
-                if (cellValid(r, c)) {
-                    res.push(field[r][c]);
-                }
-            });
+    getNeighbors(field, cell)
+        .filter(neighbor => !processed.has(neighbor))
+        .forEach(neighbor => {
+            expandCells(field, neighbor, processed);
         });
-    }
-
-    [column - 1, column + 1].forEach(c => {
-        if (cellValid(row, c)) {
-            res.push(field[row][c]);
-        }
-    });
-
-    [row - 1, row + 1].forEach(r => {
-        if (cellValid(r, column)) {
-            res.push(field[r][column]);
-        }
-    });
-
-    return res;
 }
 
 export { generateField, updateField, updateFieldMark, CellTypes, MarksTypes };
 export default CellTypes;
-
-// TODO: add more logic
