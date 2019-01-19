@@ -32,8 +32,9 @@ function getRandomInt(min, max) {
 function getNeighbors(field, targetCell) {
     const { row, column } = targetCell;
     const neighbors = [];
-    for (var r = row - 1; r <= row + 1; r++) {
-        for (var c = column - 1; c <= column + 1; c++) {
+
+    for (let r = row - 1; r <= row + 1; r++) {
+        for (let c = column - 1; c <= column + 1; c++) {
             const cell = get(field, [r, c]);
             if (cell && (r !== row || c !== column)) {
                 neighbors.push(cell);
@@ -110,24 +111,30 @@ function updateFieldMark(field, currentCell) {
         })
     );
 
-    if (markedCount === BOMBS_COUNT) {
-        // TODO: won
-        console.log("WON!");
-    }
-    return newField;
+    // player won: mark all bombs (and no other marks)
+    // player lose: cannot lose while marking
+
+    return {
+        field: newField,
+        gameOver: false,
+        gameWon: markedCount === BOMBS_COUNT,
+    };
 }
 
-function updateField(field, currentCell) {
+function updateFieldOpen(field, currentCell) {
     const openBomb = currentCell.type === CellTypes.bomb;
+    let notOpenCount = 0;
 
     // deep copy
     const newField = field.map(row =>
         row.map(cell => {
             const isCurrent = currentCell.id === cell.id;
+            const open = isCurrent || cell.open || openBomb;
+            notOpenCount += !open;
 
             return {
                 ...cell,
-                open: isCurrent || cell.open || openBomb,
+                open,
                 markType: isCurrent ? MarksTypes.empty : cell.markType,
             };
         })
@@ -140,7 +147,14 @@ function updateField(field, currentCell) {
         cell.open = true;
     });
 
-    return newField;
+    // player won: only boms left unopened
+    // player lose: bomm has been opened
+
+    return {
+        field: newField,
+        gameOver: openBomb,
+        gameWon: notOpenCount == BOMBS_COUNT,
+    };
 }
 
 function expandCells(field, cell, processed) {
@@ -161,5 +175,11 @@ function expandCells(field, cell, processed) {
         });
 }
 
-export { generateField, updateField, updateFieldMark, CellTypes, MarksTypes };
+export {
+    generateField,
+    updateFieldOpen,
+    updateFieldMark,
+    CellTypes,
+    MarksTypes,
+};
 export default CellTypes;

@@ -86,7 +86,7 @@
     color: white;
 }
 
-.game-over-block {
+.game-notification-block {
     z-index: 1;
     position: relative;
     margin: 0 auto;
@@ -94,13 +94,8 @@
     display: none;
 }
 
-.game-over-block.show {
-    display: block;
-}
-
-.game-over-message {
-    color: red;
-    background-color: grey;
+.game-notification-block .game-notification-message {
+    opacity: 0.9;
     font-weight: bold;
     position: absolute;
     left: 0;
@@ -109,4 +104,21 @@
     height: 50px;
     font-size: 25px;
     line-height: 50px;
+    display: none;
+}
+
+.game-notification-block.game-over,
+.game-notification-block.game-won {
+    display: block;
+}
+
+.game-notification-block.game-over .game-over-message {
+    display: block;
+    color: #8a1515;
+    background-color: #ec7676;
+}
+.game-notification-block.game-won .game-won-message {
+    display: block;
+    color: #40ff40;
+    background-color: #18833b;
 }
