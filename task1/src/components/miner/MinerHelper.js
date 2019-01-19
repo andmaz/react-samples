@@ -147,13 +147,13 @@ function updateFieldOpen(field, currentCell) {
         cell.open = true;
     });
 
-    // player won: only boms left unopened
-    // player lose: bomm has been opened
+    // player won: only bombs left unopened
+    // player lose: bomb has been opened
 
     return {
         field: newField,
         gameOver: openBomb,
-        gameWon: notOpenCount == BOMBS_COUNT,
+        gameWon: notOpenCount === BOMBS_COUNT,
     };
 }
 
